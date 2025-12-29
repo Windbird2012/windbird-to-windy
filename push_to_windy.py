@@ -1,6 +1,5 @@
 import os
 import requests
-from datetime import datetime, timezone
 
 WINDY_API_KEY = os.environ["WINDY_API_KEY"]
 
@@ -35,11 +34,12 @@ def push_windy(station, wind, gust, winddir, dateutc):
     print(f"✅ Windy OK pour station {station} (HTTP {w.status_code})")
 
 def main():
-    dateutc = m.get("date")
-    print("🕒 Date UTC envoyée :", dateutc)
-
     for src in SOURCES:
         m = fetch_piou(src["piou_id"])
+
+        # On utilise l'heure réelle de mesure Pioupiou (meilleur si le cron dérive)
+        dateutc = m.get("date")
+        print(f"🕒 Date UTC envoyée (piou {src['piou_id']}) :", dateutc)
 
         wind_kmh = float(m.get("wind_speed_avg", 0) or 0)
         gust_kmh = float(m.get("wind_speed_max", 0) or 0)
