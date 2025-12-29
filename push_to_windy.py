@@ -35,7 +35,7 @@ def push_windy(station, wind, gust, winddir, dateutc):
     print(f"✅ Windy OK pour station {station} (HTTP {w.status_code})")
 
 def main():
-    dateutc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    dateutc = m.get("date")
     print("🕒 Date UTC envoyée :", dateutc)
 
     for src in SOURCES:
