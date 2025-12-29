@@ -1,0 +1,28 @@
+name: Push Windbird to Windy
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run script
+        env:
+          WINDY_API_KEY: ${{ secrets.WINDY_API_KEY }}
+          WINDY_STATION: "0"
+        run: python push_to_windy.py
