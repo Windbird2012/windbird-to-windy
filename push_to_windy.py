@@ -4,19 +4,20 @@ from datetime import datetime, timezone
 
 WINDY_API_KEY = os.environ["WINDY_API_KEY"]
 
-# Association balises Pioupiou -> stations Windy
 SOURCES = [
     {"piou_id": 2012, "station": "0"},
     {"piou_id": 1415, "station": "1"},
 ]
 
 def fetch_piou(piou_id):
+    print(f"🔍 Lecture Pioupiou ID {piou_id}")
     r = requests.get(f"https://api.pioupiou.fr/v1/live/{piou_id}", timeout=20)
     r.raise_for_status()
-    return r.json()["data"]["measurements"]
+    data = r.json()["data"]["measurements"]
+    print(f"📥 Données brutes {piou_id} :", data)
+    return data
 
 def push_windy(station, wind, gust, winddir, dateutc):
-    url = f"https://stations.windy.com/pws/update/{WINDY_API_KEY}"
     params = {
         "station": station,
         "wind": round(wind, 2),
@@ -24,11 +25,18 @@ def push_windy(station, wind, gust, winddir, dateutc):
         "winddir": winddir,
         "dateutc": dateutc,
     }
+
+    print(f"📤 Envoi vers Windy (station {station}) :", params)
+
+    url = f"https://stations.windy.com/pws/update/{WINDY_API_KEY}"
     w = requests.get(url, params=params, timeout=20)
     w.raise_for_status()
 
+    print(f"✅ Windy OK pour station {station} (HTTP {w.status_code})")
+
 def main():
     dateutc = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    print("🕒 Date UTC envoyée :", dateutc)
 
     for src in SOURCES:
         m = fetch_piou(src["piou_id"])
@@ -40,12 +48,12 @@ def main():
         wind = wind_kmh / 3.6
         gust = gust_kmh / 3.6
 
-        push_windy(src["station"], wind, gust, winddir, dateutc)
-
         print(
-            f"✅ PIOU {src['piou_id']} → station {src['station']} | "
+            f"🧮 Calculs {src['piou_id']} | "
             f"wind={wind:.2f} m/s gust={gust:.2f} m/s dir={winddir}°"
         )
+
+        push_windy(src["station"], wind, gust, winddir, dateutc)
 
 if __name__ == "__main__":
     main()
